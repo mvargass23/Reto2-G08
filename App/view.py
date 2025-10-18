@@ -1,12 +1,9 @@
 import sys
+import logic as lg
 
 
 def new_logic():
-    """
-        Se crea una instancia del controlador
-    """
-    #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
-    pass
+  return lg.new_logic()
 
 def print_menu():
     print("Bienvenido")
@@ -20,12 +17,25 @@ def print_menu():
     print("7- Salir")
 
 def load_data(control):
-    """
-    Carga los datos
-    """
-    #TODO: Realizar la carga de datos
-    pass
+    filename = input("Ingrese el nombre del archivo: ")
+    result = lg.load_data(control, filename)
+    print("\n Datos cargados correctamente")
+    print(f"Tiempo de carga: {result['execution_time']} ms")
+    print(f"Total de trayectos: {result['total_trips']}")
 
+    print("\nTrayecto de menor distancia:")
+    print(result['menor_distancia'])
+
+    print("\nTrayecto de mayor distancia:")
+    print(result['mayor_distancia'])
+
+    print("\nPrimeros 5 trayectos:")
+    for t in result['first_trips']:
+        print(t)
+
+    print("\nÚltimos 5 trayectos:")
+    for t in result['last_trips']:
+        print(t)
 
 def print_data(control, id):
     """
@@ -35,50 +45,77 @@ def print_data(control, id):
     pass
 
 def print_req_1(control):
-    """
-        Función que imprime la solución del Requerimiento 1 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 1
-    pass
-
+    fecha_inicio = input("Fecha y hora inicial (YYYY-MM-DD HH:MM:SS): ")
+    fecha_fin = input("Fecha y hora final (YYYY-MM-DD HH:MM:SS): ")
+    N = int(input("Número de trayectos a mostrar: "))
+    result = lg.req_1(control, fecha_inicio, fecha_fin, N)
+    print(f"\nTiempo de ejecución: {result['execution_time']} ms")
+    print(f"Total de trayectos: {result['total_trips']}")
+    print("\nPrimeros trayectos:")
+    for t in result['first_trips']:
+        print(t)
+    print("\nÚltimos trayectos:")
+    for t in result['last_trips']:
+        print(t)
 
 def print_req_2(control):
-    """
-        Función que imprime la solución del Requerimiento 2 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 2
-    pass
-
+    lat_min = float(input("Latitud mínima: "))
+    lat_max = float(input("Latitud máxima: "))
+    N = int(input("Número de trayectos a mostrar: "))
+    result = lg.req_2(control, lat_min, lat_max, N)
+    print(f"\nTiempo de ejecución: {result['execution_time']} ms")
+    print(f"Total de trayectos: {result['total_trips']}")
+    print("\nPrimeros trayectos:")
+    for t in result['first_trips']:
+        print(t)
+    print("\nÚltimos trayectos:")
+    for t in result['last_trips']:
+        print(t)
 
 def print_req_3(control):
-    """
-        Función que imprime la solución del Requerimiento 3 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    min_amount = float(input("Monto mínimo: "))
+    max_amount = float(input("Monto máximo: "))
+    N = int(input("Número de trayectos a mostrar: "))
+    result = lg.req_3(control, min_amount, max_amount, N)
+    print(f"\nTiempo de ejecución: {result['execution_time']} ms")
+    print(f"Total de trayectos: {result['total_trips']}")
+    print("\nPrimeros trayectos:")
+    for t in result['first_trips']:
+        print(t)
+    print("\nÚltimos trayectos:")
+    for t in result['last_trips']:
+        print(t)
+
 
 
 def print_req_4(control):
-    """
-        Función que imprime la solución del Requerimiento 4 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 4
-    pass
+    fecha = input("Fecha de terminación (YYYY-MM-DD): ")
+    condicion = input("ANTES o DESPUES del tiempo de referencia: ").upper()
+    hora_ref = input("Hora de referencia (HH:MM:SS): ")
+    N = int(input("Número de trayectos a mostrar: "))
+    result = lg.req_4(control, fecha, condicion, hora_ref, N)
+    print(f"\nTiempo de ejecución: {result['execution_time']} ms")
+    print(f"Total de trayectos: {result['total_trips']}")
+    print("\nPrimeros trayectos:")
+    for t in result['first_trips']:
+        print(t)
+    print("\nÚltimos trayectos:")
+    for t in result['last_trips']:
+        print(t)
 
 
 def print_req_5(control):
-    """
-        Función que imprime la solución del Requerimiento 5 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 5
-    pass
+    fecha_inicio = input("Fecha inicio (YYYY-MM-DD): ")
+    fecha_fin = input("Fecha fin (YYYY-MM-DD): ")
+    filtro = input("Filtro (MAYOR o MENOR): ").upper()
+    result = lg.req_5(control, fecha_inicio, fecha_fin, filtro)
+    print(f"\nTiempo de ejecución: {result['execution_time']} ms")
+    print(f"Total de trayectos analizados: {result['total_trips']}")
+    print(f"Hora con {filtro} promedio: {result['hora']} -> ${result['promedio']:.2f}")
 
 
 def print_req_6(control):
-    """
-        Función que imprime la solución del Requerimiento 6 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 6
+    
     pass
 
 # Se crea la lógica asociado a la vista
@@ -119,5 +156,5 @@ def main():
             working = False
             print("\nGracias por utilizar el programa") 
         else:
-            print("Opción errónea, vuelva a elegir.\n")
+            print("Opción errónea1, vuelva a elegir.\n")
     sys.exit(0)
