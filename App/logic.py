@@ -3,8 +3,6 @@ import os
 import csv
 from datetime import datetime
 from DataStructures import array_list as al
-from DISClib.ADT import map as m
-
 import sys
 default_limit = 1000
 sys.setrecursionlimit(default_limit * 10)
@@ -187,101 +185,7 @@ def req_2(catalog, lat_min, lat_max, N):
 
 def req_3(catalog):
     pass
-
-
-def req_4(catalog, fecha_str, condicion, hora_ref_str, N):
-    start = get_time()
-    trips = catalog['trips']
-
-    fecha_obj = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-    hora_ref = datetime.strptime(hora_ref_str, "%H:%M:%S").time()
-
-    tabla_fechas = m.new_map(100, maptype='PROBING')
-
-    for i in range(al.size(trips)):
-        t = al.get_element(trips, i)
-        fecha_termina = t['dropoff_datetime'].date()
-        entry = m.get(tabla_fechas, fecha_termina)
-        if entry:
-            lista = entry['value']
-            al.add_last(lista, t)
-        else:
-            nueva_lista = al.new_list()
-            al.add_last(nueva_lista, t)
-            m.put(tabla_fechas, fecha_termina, nueva_lista)
-
-    entry = m.get(tabla_fechas, fecha_obj)
-    if not entry:
-        end = get_time()
-        return {
-            'execution_time': round(delta_time(start, end), 3),
-            'total_trips': 0,
-            'message': 'No se encontraron trayectos en la fecha indicada.'
-        }
-
-    lista_fecha = entry['value']
-
-    filtrados = al.new_list()
-    for i in range(al.size(lista_fecha)):
-        t = al.get_element(lista_fecha, i)
-        hora_fin = t['dropoff_datetime'].time()
-        if condicion == "ANTES" and hora_fin < hora_ref:
-            al.add_last(filtrados, t)
-        elif condicion == "DESPUES" and hora_fin > hora_ref:
-            al.add_last(filtrados, t)
-
-    total = al.size(filtrados)
-    if total == 0:
-        end = get_time()
-        return {
-            'execution_time': round(delta_time(start, end), 3),
-            'total_trips': 0,
-            'message': 'No se encontraron trayectos que cumplan la condición indicada.'
-        }
-
-    for i in range(1, total):
-        actual = al.get_element(filtrados, i)
-        j = i - 1
-        while j >= 0 and al.get_element(filtrados, j)['dropoff_datetime'] < actual['dropoff_datetime']:
-            anterior = al.get_element(filtrados, j)
-            filtrados['elements'][j + 1] = anterior
-            j -= 1
-        filtrados['elements'][j + 1] = actual
-
-    N = N if total >= 2 * N else total // 2
-    primeros = al.new_list()
-    ultimos = al.new_list()
-
-    for i in range(N):
-        t = al.get_element(filtrados, i)
-        al.add_last(primeros, {
-            'pickup_datetime': t['pickup_datetime'].strftime("%Y-%m-%d %H:%M:%S"),
-            'pickup_coord': [t['pickup_latitude'], t['pickup_longitude']],
-            'dropoff_datetime': t['dropoff_datetime'].strftime("%Y-%m-%d %H:%M:%S"),
-            'dropoff_coord': [t['dropoff_latitude'], t['dropoff_longitude']],
-            'trip_distance': round(t['trip_distance'], 2),
-            'total_amount': round(t['total_amount'], 2)
-        })
-
-    for i in range(total - N, total):
-        t = al.get_element(filtrados, i)
-        al.add_last(ultimos, {
-            'pickup_datetime': t['pickup_datetime'].strftime("%Y-%m-%d %H:%M:%S"),
-            'pickup_coord': [t['pickup_latitude'], t['pickup_longitude']],
-            'dropoff_datetime': t['dropoff_datetime'].strftime("%Y-%m-%d %H:%M:%S"),
-            'dropoff_coord': [t['dropoff_latitude'], t['dropoff_longitude']],
-            'trip_distance': round(t['trip_distance'], 2),
-            'total_amount': round(t['total_amount'], 2)
-        })
-
-    end = get_time()
-    return {
-        'execution_time': round(delta_time(start, end), 3),
-        'total_trips': total,
-        'first_trips': primeros,
-        'last_trips': ultimos
-    }
-    
+   
 
 def req_5(catalog, fecha_inicio_str, fecha_fin_str, filtro):
     start = get_time()
@@ -318,12 +222,81 @@ def req_5(catalog, fecha_inicio_str, fecha_fin_str, filtro):
         'promedio_total': round(mejor_prom, 2)
     }
 
-def req_6(catalog):
-    """
-    Retorna el resultado del requerimiento 6
-    """
-    # TODO: Modificar el requerimiento 6
-    pass
+def req_6(catalog, barrio, hora_inicial, hora_final, tamaño):
+    start = get_time()
+    viajes = catalog["trips"]
+    
+    hora_i = int(hora_inicial)
+    hora_f = int(hora_final)
+
+    filtrados = al.new_list()
+
+    def pertenece_a_barrio(viaje, barrio):
+        coordenadas = catalog["barrios"][barrio]
+        lat_min, lat_max, lon_min, lon_max = coordenadas
+        return (lat_min <= viaje["pickup_latitude"] <= lat_max and lon_min <= viaje["pickup_longitude"] <= lon_max)
+    i = 0
+    while i < viajes["size"]:
+        v = viajes["elements"][i]
+        hora_viaje = v["pickup_datetime"].hour
+        if hora_i <= hora_viaje <= hora_f and pertenece_a_barrio(v, barrio):
+            al.add_last(filtrados, v)
+        i += 1
+
+    total_filtrados = filtrados["size"]
+
+    if total_filtrados == 0:
+        end = get_time()
+        return {
+            "execution_time": round(delta_time(start, end), 3),
+            "total_viajes": 0,
+            "message": "No se encontraron viajes en ese barrio y rango horario.",
+            "primeros": [],
+            "ultimos": []
+        }
+
+    def comparar(v1, v2):
+        return v1["pickup_datetime"] < v2["pickup_datetime"]
+    al.merge_sort(filtrados, comparar)
+
+    primeros = []
+    ultimos = []
+    n = min(tamaño, total_filtrados)
+
+    for i in range(n):
+        v = filtrados["elements"][i]
+        primeros.append({
+            "pickup_datetime": v["pickup_datetime"].strftime("%Y-%m-%d %H:%M:%S"),
+            "pickup_coords": [v["pickup_latitude"], v["pickup_longitude"]],
+            "dropoff_datetime": v["dropoff_datetime"].strftime("%Y-%m-%d %H:%M:%S"),
+            "dropoff_coords": [v["dropoff_latitude"], v["dropoff_longitude"]],
+            "trip_distance": round(v["trip_distance"], 2),
+            "total_amount": round(v["total_amount"], 2)
+        })
+
+    for i in range(total_filtrados - n, total_filtrados):
+        v = filtrados["elements"][i]
+        ultimos.append({
+            "pickup_datetime": v["pickup_datetime"].strftime("%Y-%m-%d %H:%M:%S"),
+            "pickup_coords": [v["pickup_latitude"], v["pickup_longitude"]],
+            "dropoff_datetime": v["dropoff_datetime"].strftime("%Y-%m-%d %H:%M:%S"),
+            "dropoff_coords": [v["dropoff_latitude"], v["dropoff_longitude"]],
+            "trip_distance": round(v["trip_distance"], 2),
+            "total_amount": round(v["total_amount"], 2)
+        })
+
+
+    end = get_time()
+    tiempo_total = round(delta_time(start, end), 3)
+
+    return {
+        "execution_time": tiempo_total,
+        "total_viajes": total_filtrados,
+        "primeros": primeros,
+        "ultimos": ultimos
+    }
+
+
 
 
 # Funciones para medir tiempos de ejecucion

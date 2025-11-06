@@ -115,8 +115,37 @@ def print_req_5(control):
 
 
 def print_req_6(control):
+    barrio = input("Nombre del barrio: ")
+    hora_inicial = input("Hora inicial (0–23): ")
+    hora_final = input("Hora final (0–23): ")
+    N = int(input("Número de trayectos a mostrar: "))
     
-    pass
+    result = lg.req_6(control, barrio, hora_inicial, hora_final, N)
+
+    print(f"\nTiempo de ejecución: {result['execution_time']} ms")
+    print(f"Total de trayectos: {result['total_viajes']}")
+
+    if result["total_viajes"] == 0:
+        print(f"\n{result['message']}")
+        return
+
+    print("\nPrimeros trayectos encontrados:")
+    for t in result["primeros"]:
+        print(f"Fecha recogida: {t['pickup_datetime']}")
+        print(f"  Coordenadas inicio: {t['pickup_coords']}")
+        print(f"Fecha entrega: {t['dropoff_datetime']}")
+        print(f"  Coordenadas destino: {t['dropoff_coords']}")
+        print(f"  Distancia: {t['trip_distance']} mi")
+        print(f"  Valor total: ${t['total_amount']}\n")
+
+    print("Últimos trayectos encontrados:")
+    for t in result["ultimos"]:
+        print(f"Fecha recogida: {t['pickup_datetime']}")
+        print(f"  Coordenadas inicio: {t['pickup_coords']}")
+        print(f"Fecha entrega: {t['dropoff_datetime']}")
+        print(f"  Coordenadas destino: {t['dropoff_coords']}")
+        print(f"  Distancia: {t['trip_distance']} mi")
+        print(f"  Valor total: ${t['total_amount']}\n")
 
 # Se crea la lógica asociado a la vista
 control = new_logic()
